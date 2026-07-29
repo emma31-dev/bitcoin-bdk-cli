@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BDKCliError {
+    #[error("Cannot provide both a multipath descriptor and a separate internal descriptor.")]
+    AmbiguousDescriptors,
+
     #[error("BIP39 error: {0:?}")]
     BIP39Error(#[from] Option<bdk_wallet::bip39::Error>),
 

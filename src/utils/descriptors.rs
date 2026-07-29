@@ -1,3 +1,5 @@
+use bdk_wallet::bitcoin::Network;
+use bdk_wallet::descriptor::IntoWalletDescriptor;
 use bdk_wallet::keys::GeneratableKey;
 use std::{str::FromStr, sync::Arc};
 
@@ -195,4 +197,37 @@ pub fn generate_descriptor_from_mnemonic(
     let mut result = generate_descriptors(desc_type, &xprv.to_string(), network)?;
     result.mnemonic = Some(mnemonic_str.to_string());
     Ok(result)
+}
+
+/// Returns `true` if `descriptor` is a BIP-389 multipath descriptor (e.g. `.../<0;1>/*`).
+///
+/// Parses via IntoWalletDescriptor and uses miniscript's `is_multipath`.
+/// Returns an error if the descriptor is unparseable.
+pub fn is_multipath_descriptor(descriptor: &str, network: Network) -> Result<bool, Error> {
+    let secp = Secp256k1::new();
+    let (descriptor, _) = descriptor.into_wallet_descriptor(&secp, network.into())?;
+    Ok(descriptor.is_multipath())
+}
+
+#[cfg(test)]
+mod multipath_tests {
+    use super::*;
+
+    const MULTIPATH: &str = "wpkh([9a6a2580/84'/1'/0']tpubDDnGNapGEY6AZAdQbfRJgMg9fvz8pUBrLwvyvUqEgcUfgzM6zc2eVK4vY9x9L5FJWdX8WumXuLEDV5zDZnTfbn87vLe9XceCFwTu9so9Kks/<0;1>/*)";
+    const SINGLE: &str = "wpkh([07234a14/84'/1'/0']tpubDCSgT6PaVLQH9h2TAxKryhvkEurUBcYRJc9dhTcMDyahhWiMWfEWvQQX89yaw7w7XU8bcVujoALfxq59VkFATri3Cxm5mkp9kfHfRFDckEh/0/*)#429nsxmg";
+
+    #[test]
+    fn detects_multipath() {
+        assert!(is_multipath_descriptor(MULTIPATH, Network::Testnet).unwrap());
+    }
+
+    #[test]
+    fn detects_single_path() {
+        assert!(!is_multipath_descriptor(SINGLE, Network::Testnet).unwrap());
+    }
+
+    #[test]
+    fn rejects_unparseable() {
+        assert!(is_multipath_descriptor("not a descriptor", Network::Testnet).is_err());
+    }
 }
