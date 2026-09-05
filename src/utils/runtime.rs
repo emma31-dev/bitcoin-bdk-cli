@@ -7,9 +7,7 @@ use std::{
 };
 
 use crate::{
-    error::BDKCliError as Error,
-    persister::new_wallet,
-    utils::{load_wallet_config, prepare_wallet_db_dir},
+    error::BDKCliError as Error, persister::new_wallet, utils::prepare_wallet_db_dir_and_config,
 };
 #[cfg(any(feature = "sqlite", feature = "redb"))]
 use {
@@ -76,9 +74,8 @@ pub struct WalletRuntime {
 
 impl WalletRuntime {
     pub fn load(home_dir: &Path, wallet_name: &str) -> Result<Self, Error> {
-        let (wallet_opts, network) = load_wallet_config(home_dir, wallet_name)?;
-
-        let database_path = prepare_wallet_db_dir(home_dir, wallet_name)?;
+        let (database_path, wallet_opts, network) =
+            prepare_wallet_db_dir_and_config(home_dir, wallet_name)?;
 
         Ok(Self {
             wallet_name: wallet_name.to_string(),

@@ -112,22 +112,6 @@ pub(crate) fn prepare_home_dir(home_path: Option<PathBuf>) -> Result<PathBuf, Er
     Ok(dir)
 }
 
-/// Prepare wallet database directory.
-#[allow(dead_code)]
-pub(crate) fn prepare_wallet_db_dir(
-    home_path: &Path,
-    wallet_name: &str,
-) -> Result<std::path::PathBuf, Error> {
-    let mut dir = home_path.to_owned();
-    dir.push(wallet_name);
-
-    if !dir.exists() {
-        std::fs::create_dir(&dir).map_err(|e| Error::Generic(e.to_string()))?;
-    }
-
-    Ok(dir)
-}
-
 pub fn is_mnemonic(s: &str) -> bool {
     let word_count = s.split_whitespace().count();
     (12..=24).contains(&word_count) && s.chars().all(|c| c.is_alphanumeric() || c.is_whitespace())
@@ -154,11 +138,19 @@ pub async fn trace_logger(
     }
 }
 
-pub fn load_wallet_config(
-    home_dir: &Path,
+/// Prepare wallet database directory and config.
+pub fn prepare_wallet_db_dir_and_config(
+    home_path: &Path,
     wallet_name: &str,
-) -> Result<(WalletOpts, Network), Error> {
-    let config = WalletConfig::load(home_dir)?.ok_or(Error::Generic(format!(
+) -> Result<(std::path::PathBuf, WalletOpts, Network), Error> {
+    let mut dir = home_path.to_owned();
+    dir.push(wallet_name);
+
+    if !dir.exists() {
+        std::fs::create_dir(&dir).map_err(|e| Error::Generic(e.to_string()))?;
+    }
+
+    let config = WalletConfig::load(home_path)?.ok_or(Error::Generic(format!(
         "No config found for wallet {wallet_name}",
     )))?;
 
@@ -173,7 +165,7 @@ pub fn load_wallet_config(
     let network = Network::from_str(&wallet_config.network)
         .map_err(|_| Error::Generic("Invalid network in config".to_string()))?;
 
-    Ok((wallet_opts, network))
+    Ok((dir, wallet_opts, network))
 }
 
 #[cfg(feature = "silent-payments")]
