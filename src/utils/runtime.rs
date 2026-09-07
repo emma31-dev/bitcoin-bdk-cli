@@ -61,7 +61,9 @@ impl RuntimeWallet {
                 if wallet.persist(persister)? {
                     Ok(())
                 } else {
-                    Err(Error::Generic("Wallet changes were not persisted".to_string()))
+                    Err(Error::Generic(
+                        "Wallet changes were not persisted".to_string(),
+                    ))
                 }
             }
         }
