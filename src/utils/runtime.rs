@@ -58,8 +58,11 @@ impl RuntimeWallet {
             Self::Standard(_) => Ok(()),
             #[cfg(any(feature = "sqlite", feature = "redb"))]
             Self::Persisted(wallet, persister) => {
-                wallet.persist(persister)?;
-                Ok(())
+                if wallet.persist(persister)? {
+                    Ok(())
+                } else {
+                    Err(Error::Generic("Wallet changes were not persisted".to_string()))
+                }
             }
         }
     }
