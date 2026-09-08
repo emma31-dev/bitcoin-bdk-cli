@@ -1,6 +1,6 @@
 use crate::commands::WalletOpts;
 use crate::error::BDKCliError as Error;
-use crate::utils::descriptors::is_multipath_descriptor;
+use crate::utils::descriptors::validate_descriptor_pair;
 use bdk_wallet::Wallet;
 use bdk_wallet::bitcoin::Network;
 #[cfg(any(feature = "sqlite", feature = "redb"))]
@@ -69,10 +69,8 @@ where
     let ext_descriptor = wallet_opts.ext_descriptor.clone();
     let int_descriptor = wallet_opts.int_descriptor.clone();
 
-    let ext_is_multipath = is_multipath_descriptor(&ext_descriptor, network)?;
-    if ext_is_multipath && int_descriptor.is_some() {
-        return Err(Error::AmbiguousDescriptors);
-    }
+    let ext_is_multipath =
+        validate_descriptor_pair(&ext_descriptor, int_descriptor.as_deref(), network)?;
 
     let mut wallet_load_params = Wallet::load();
     wallet_load_params = if ext_is_multipath {
@@ -118,10 +116,8 @@ pub(crate) fn new_wallet(network: Network, wallet_opts: &WalletOpts) -> Result<W
     let ext_descriptor = wallet_opts.ext_descriptor.clone();
     let int_descriptor = wallet_opts.int_descriptor.clone();
 
-    let ext_is_multipath = is_multipath_descriptor(&ext_descriptor, network)?;
-    if ext_is_multipath && int_descriptor.is_some() {
-        return Err(Error::AmbiguousDescriptors);
-    }
+    let ext_is_multipath =
+        validate_descriptor_pair(&ext_descriptor, int_descriptor.as_deref(), network)?;
 
     let builder = if let Some(int_descriptor) = int_descriptor {
         Wallet::create(ext_descriptor, int_descriptor)

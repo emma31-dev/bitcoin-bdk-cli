@@ -49,6 +49,11 @@ pub enum BDKCliError {
     #[error("LocalChain error: {0}")]
     LocalChainError(#[from] bdk_wallet::chain::local_chain::ApplyHeaderError),
 
+    #[error(
+        "The internal descriptor cannot be a multipath descriptor. Provide it as the external descriptor instead."
+    )]
+    MultipathInternalDescriptor,
+
     #[error("Miniscript error: {0}")]
     MiniscriptError(#[from] bdk_wallet::miniscript::Error),
 

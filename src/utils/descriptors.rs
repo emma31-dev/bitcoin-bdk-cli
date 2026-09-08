@@ -199,26 +199,45 @@ pub fn generate_descriptor_from_mnemonic(
     Ok(result)
 }
 
-/// Returns `true` if `descriptor` is a supported two-path BIP-389 multipath descriptor
-/// (external and internal), `false` for a normal single-path descriptor.
+/// Returns the number of derivation paths in `descriptor`.
 ///
-/// Errors if the descriptor is unparseable, or if it's a multipath descriptor with a number
-/// of paths other than two (supports only external/internal two-path multipath).
-pub fn is_multipath_descriptor(descriptor: &str, network: Network) -> Result<bool, Error> {
+/// Errors if the descriptor is unparseable or its keys don't match `network`.
+fn descriptor_path_count(descriptor: &str, network: Network) -> Result<usize, Error> {
     let secp = Secp256k1::new();
     let (descriptor, _) = descriptor.into_wallet_descriptor(&secp, network.into())?;
+    Ok(descriptor.into_single_descriptors()?.len())
+}
 
-    if !descriptor.is_multipath() {
-        return Ok(false);
-    }
-
-    let paths = descriptor.into_single_descriptors()?.len();
-    if paths != 2 {
+/// Validates the external/internal descriptor pair, returning `true` if `ext_descriptor` is a
+/// supported two-path BIP-389 multipath descriptor.
+///
+/// Errors if either descriptor is unparseable or doesn't match `network`, if `ext_descriptor` is
+/// a multipath descriptor with a number of paths other than two (only external/internal two-path
+/// multipath is supported), if a multipath `ext_descriptor` is paired with a separate
+/// `int_descriptor`, or if `int_descriptor` is itself a multipath descriptor.
+pub fn validate_descriptor_pair(
+    ext_descriptor: &str,
+    int_descriptor: Option<&str>,
+    network: Network,
+) -> Result<bool, Error> {
+    let ext_paths = descriptor_path_count(ext_descriptor, network)?;
+    if ext_paths > 2 {
         return Err(Error::Generic(format!(
-            "Unsupported multipath descriptor: expected exactly 2 paths (external/internal), found {paths}."
+            "Unsupported multipath descriptor: expected exactly 2 paths (external/internal), found {ext_paths}."
         )));
     }
-    Ok(true)
+    let ext_is_multipath = ext_paths == 2;
+
+    if let Some(int_descriptor) = int_descriptor {
+        if ext_is_multipath {
+            return Err(Error::AmbiguousDescriptors);
+        }
+        if descriptor_path_count(int_descriptor, network)? > 1 {
+            return Err(Error::MultipathInternalDescriptor);
+        }
+    }
+
+    Ok(ext_is_multipath)
 }
 
 #[cfg(test)]
@@ -226,26 +245,18 @@ mod multipath_tests {
     use super::*;
 
     const MULTIPATH: &str = "wpkh([9a6a2580/84'/1'/0']tpubDDnGNapGEY6AZAdQbfRJgMg9fvz8pUBrLwvyvUqEgcUfgzM6zc2eVK4vY9x9L5FJWdX8WumXuLEDV5zDZnTfbn87vLe9XceCFwTu9so9Kks/<0;1>/*)";
-    const THREE_PATH: &str = "wpkh([9a6a2580/84'/1'/0']tpubDDnGNapGEY6AZAdQbfRJgMg9fvz8pUBrLwvyvUqEgcUfgzM6zc2eVK4vY9x9L5FJWdX8WumXuLEDV5zDZnTfbn87vLe9XceCFwTu9so9Kks/<0;1;2>/*)";
     const SINGLE: &str = "wpkh([07234a14/84'/1'/0']tpubDCSgT6PaVLQH9h2TAxKryhvkEurUBcYRJc9dhTcMDyahhWiMWfEWvQQX89yaw7w7XU8bcVujoALfxq59VkFATri3Cxm5mkp9kfHfRFDckEh/0/*)#429nsxmg";
 
     #[test]
-    fn detects_multipath() {
-        assert!(is_multipath_descriptor(MULTIPATH, Network::Testnet).unwrap());
+    fn rejects_multipath_with_internal_descriptor() {
+        assert!(matches!(
+            validate_descriptor_pair(MULTIPATH, Some(SINGLE), Network::Testnet),
+            Err(Error::AmbiguousDescriptors)
+        ));
     }
 
     #[test]
-    fn detects_single_path() {
-        assert!(!is_multipath_descriptor(SINGLE, Network::Testnet).unwrap());
-    }
-
-    #[test]
-    fn rejects_unparseable() {
-        assert!(is_multipath_descriptor("not a descriptor", Network::Testnet).is_err());
-    }
-
-    #[test]
-    fn rejects_more_than_two_paths() {
-        assert!(is_multipath_descriptor(THREE_PATH, Network::Testnet).is_err());
+    fn accepts_single_path_with_internal_descriptor() {
+        assert!(!validate_descriptor_pair(SINGLE, Some(SINGLE), Network::Testnet).unwrap());
     }
 }

@@ -417,18 +417,19 @@ mod multipath_tests {
     }
 
     #[test]
-    fn multipath_with_internal_is_ambiguous() {
+    fn multipath_with_internal_is_rejected_at_config_time() {
         let tmp = TempDir::new().unwrap();
         let cli = BdkCli::new("testnet", Some(tmp.path().to_path_buf()));
         save_config(&cli, "multipath_wallet", MULTIPATH_DESC, Some(INT_DESC))
-            .assert()
-            .success();
-
-        cli.wallet_cmd(&["--wallet", "multipath_wallet", "new_address"])
             .assert()
             .failure()
             .stderr(predicate::str::contains(
                 "multipath descriptor and a separate internal descriptor",
             ));
+
+        // Nothing was written, so the wallet does not exist.
+        cli.wallet_cmd(&["--wallet", "multipath_wallet", "new_address"])
+            .assert()
+            .failure();
     }
 }
