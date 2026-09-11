@@ -154,7 +154,6 @@ pub async fn trace_logger(
     }
 }
 
-/// Prepare wallet database directory.
 pub fn load_wallet_config(
     home_dir: &Path,
     wallet_name: &str,
