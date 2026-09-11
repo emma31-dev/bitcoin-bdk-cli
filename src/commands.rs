@@ -216,7 +216,6 @@ pub enum WalletSubCommand {
     /// Save wallet configuration to `config.toml`.
     Config(SaveConfigCommand),
     /// Delete a saved wallet configuration.
-    #[cfg(feature = "repl")]
     DeleteConfig(DeleteConfigCommand),
     #[cfg(any(
         feature = "electrum",
