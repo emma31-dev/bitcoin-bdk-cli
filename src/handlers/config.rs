@@ -176,7 +176,7 @@ impl AppCommand<AppContext<Init>> for DeleteConfigCommand {
         let mut config = WalletConfig::load(&ctx.datadir)?
             .ok_or_else(|| Error::Generic("No wallets configured yet.".to_owned()))?;
 
-        if config.wallets.remove(wallet_name.as_str()).is_none() {
+        if config.wallets.remove(wallet_name).is_none() {
             return Err(Error::Generic(format!(
                 "Wallet '{}' not found in config.",
                 wallet_name
