@@ -161,6 +161,44 @@ impl AppCommand<AppContext<Init>> for SaveConfigCommand {
 }
 
 #[derive(Args, Debug, Clone, PartialEq)]
+pub struct DeleteConfigCommand {
+    /// The name of the wallet whose configuration should be deleted.
+    #[arg(long = "wallet")]
+    pub(crate) wallet: String,
+}
+
+impl AppCommand<AppContext<Init>> for DeleteConfigCommand {
+    type Output = StatusResult;
+
+    fn execute(&self, ctx: &mut AppContext<Init>) -> Result<Self::Output, Error> {
+        let wallet_name = &self.wallet;
+
+        let mut config = WalletConfig::load(&ctx.datadir)?
+            .ok_or_else(|| Error::Generic("No wallets configured yet.".to_owned()))?;
+
+        if config.wallets.remove(wallet_name.as_str()).is_none() {
+            return Err(Error::Generic(format!(
+                "Wallet '{}' not found in config.",
+                wallet_name
+            )));
+        }
+
+        if config.wallets.is_empty() {
+            WalletConfig::delete(&ctx.datadir)?;
+        } else {
+            config
+                .save(&ctx.datadir)
+                .map_err(|error| Error::Generic(error.to_string()))?;
+        }
+
+        Ok(StatusResult {
+            message: format!("Wallet '{}' configuration deleted successfully.", wallet_name),
+        })
+    }
+}
+
+
+#[derive(Args, Debug, Clone, PartialEq)]
 pub struct ListWalletsCommand;
 
 impl AppCommand<AppContext<Init>> for ListWalletsCommand {

@@ -86,6 +86,15 @@ pub(crate) async fn respond(
                 .map_err(|e| e.to_string())?;
                 Some(())
             }
+            WalletSubCommand::DeleteConfig(_) => {
+                writeln!(
+                    std::io::stdout(),
+                    "`delete-config` is not available in REPL mode — the wallet for this session \
+         is already loaded. Exit and run `bdk-cli wallet --wallet <name> delete-config ...`."
+                )
+                .map_err(|e| e.to_string())?;
+                Some(())
+            }
         },
 
         ReplSubCommand::Descriptor(cmd) => {

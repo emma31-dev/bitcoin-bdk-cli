@@ -115,6 +115,14 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
 
                 config_cmd.execute(&mut ctx)?.write_out(std::io::stdout())?;
             }
+
+            WalletSubCommand::DeleteConfig(mut delete_cmd) => {
+                delete_cmd.wallet = wallet_name;
+
+                let mut ctx = AppContext::new(cli_opts.network, home_dir);
+
+                delete_cmd.execute(&mut ctx)?.write_out(std::io::stdout())?;
+            }
         },
 
         CliSubCommand::Key { subcommand } => {

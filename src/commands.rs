@@ -13,6 +13,8 @@
 //! All subcommands are defined in the below enums.
 
 #![allow(clippy::large_enum_variant)]
+#[cfg(feature = "repl")]
+use crate::handlers::config::DeleteConfigCommand;
 #[cfg(feature = "message_signer")]
 use crate::handlers::offline::{SignMessageCommand, VerifyMessageCommand};
 use crate::handlers::{
@@ -213,6 +215,9 @@ pub enum CliSubCommand {
 pub enum WalletSubCommand {
     /// Save wallet configuration to `config.toml`.
     Config(SaveConfigCommand),
+    /// Delete a saved wallet configuration.
+    #[cfg(feature = "repl")]
+    DeleteConfig(DeleteConfigCommand),
     #[cfg(any(
         feature = "electrum",
         feature = "esplora",

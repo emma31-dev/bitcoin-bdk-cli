@@ -95,6 +95,23 @@ impl WalletConfig {
         Ok(())
     }
 
+    /// Safely delete the configuration file from the wallet's data directory.
+    ///
+    /// Returns `Ok(true)` if the file was deleted, and `Ok(false)` if the file
+    /// did not exist (in which case no action is taken).
+    pub fn delete(datadir: &Path) -> Result<bool, Error> {
+        let config_path = datadir.join("config.toml");
+        if !config_path.exists() {
+            log::debug!("Config file {config_path:?} does not exist, nothing to delete");
+            return Ok(false);
+        }
+        fs::remove_file(&config_path).map_err(|e| {
+            Error::Generic(format!("Failed to delete config file {config_path:?}: {e}"))
+        })?;
+        log::debug!("Deleted config file {config_path:?}");
+        Ok(true)
+    }
+
     /// Get config for a wallet
     pub fn get_wallet_opts(&self, wallet_name: &str) -> Result<WalletOpts, Error> {
         self.wallets
