@@ -13,7 +13,6 @@
 //! All subcommands are defined in the below enums.
 
 #![allow(clippy::large_enum_variant)]
-#[cfg(feature = "repl")]
 use crate::handlers::config::DeleteConfigCommand;
 #[cfg(feature = "message_signer")]
 use crate::handlers::offline::{SignMessageCommand, VerifyMessageCommand};
