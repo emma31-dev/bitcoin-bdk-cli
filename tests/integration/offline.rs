@@ -349,3 +349,87 @@ mod repl_tests {
         );
     }
 }
+
+#[cfg(all(
+    feature = "sqlite",
+    not(any(
+        feature = "electrum",
+        feature = "esplora",
+        feature = "rpc",
+        feature = "cbf"
+    ))
+))]
+mod multipath_tests {
+    use crate::common::BdkCli;
+    use assert_cmd::Command;
+    use predicates::prelude::*;
+    use tempfile::TempDir;
+
+    // A public BIP-389 two-path (multipath) descriptor
+    const MULTIPATH_DESC: &str = "wpkh([9a6a2580/84'/1'/0']tpubDDnGNapGEY6AZAdQbfRJgMg9fvz8pUBrLwvyvUqEgcUfgzM6zc2eVK4vY9x9L5FJWdX8WumXuLEDV5zDZnTfbn87vLe9XceCFwTu9so9Kks/<0;1>/*)";
+    const INT_DESC: &str = "wpkh([07234a14/84'/1'/0']tpubDCSgT6PaVLQH9h2TAxKryhvkEurUBcYRJc9dhTcMDyahhWiMWfEWvQQX89yaw7w7XU8bcVujoALfxq59VkFATri3Cxm5mkp9kfHfRFDckEh/1/*)";
+
+    fn save_config(cli: &BdkCli, wallet: &str, ext: &str, int: Option<&str>) -> Command {
+        let mut cmd = cli.build_base_cmd();
+        cmd.arg("wallet")
+            .arg("--wallet")
+            .arg(wallet)
+            .arg("config")
+            .arg("--ext-descriptor")
+            .arg(ext)
+            .arg("--database-type")
+            .arg("sqlite");
+        if let Some(int) = int {
+            cmd.arg("--int-descriptor").arg(int);
+        }
+        cmd
+    }
+
+    #[test]
+    fn multipath_descriptor_creates_split_keychains() {
+        let tmp = TempDir::new().unwrap();
+        let cli = BdkCli::new("testnet", Some(tmp.path().to_path_buf()));
+        save_config(&cli, "multipath_wallet", MULTIPATH_DESC, None)
+            .assert()
+            .success();
+
+        cli.wallet_cmd(&["--wallet", "multipath_wallet", "public_descriptor"])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("/0/*"))
+            .stdout(predicate::str::contains("/1/*"));
+    }
+
+    #[test]
+    fn multipath_wallet_reloads() {
+        let tmp = TempDir::new().unwrap();
+        let cli = BdkCli::new("testnet", Some(tmp.path().to_path_buf()));
+        save_config(&cli, "multipath_wallet", MULTIPATH_DESC, None)
+            .assert()
+            .success();
+
+        cli.wallet_cmd(&["--wallet", "multipath_wallet", "new_address"])
+            .assert()
+            .success();
+        cli.wallet_cmd(&["--wallet", "multipath_wallet", "new_address"])
+            .assert()
+            .success();
+    }
+
+    #[test]
+    fn multipath_with_internal_is_rejected_at_config_time() {
+        let tmp = TempDir::new().unwrap();
+        let cli = BdkCli::new("testnet", Some(tmp.path().to_path_buf()));
+        save_config(&cli, "multipath_wallet", MULTIPATH_DESC, Some(INT_DESC))
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "multipath descriptor and a separate internal descriptor",
+            ));
+
+        // Nothing was written, so the wallet does not exist.
+        cli.wallet_cmd(&["--wallet", "multipath_wallet", "new_address"])
+            .assert()
+            .failure();
+    }
+}

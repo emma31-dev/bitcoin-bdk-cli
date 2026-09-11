@@ -48,7 +48,16 @@ impl AppCommand<AppContext<Init>> for GenerateKeyCommand {
         let secp = Secp256k1::new();
         let mnemonic_type = match self.word_count {
             12 => WordCount::Words12,
-            _ => WordCount::Words24,
+            15 => WordCount::Words15,
+            18 => WordCount::Words18,
+            21 => WordCount::Words21,
+            24 => WordCount::Words24,
+            _ => {
+                return Err(Error::Generic(format!(
+                    "Invalid word count: {}. Must be one of 12, 15, 18, 21, 24.",
+                    self.word_count
+                )));
+            }
         };
 
         let mnemonic: GeneratedKey<_, miniscript::BareCtx> =

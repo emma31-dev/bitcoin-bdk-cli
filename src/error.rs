@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BDKCliError {
+    #[error("Cannot provide both a multipath descriptor and a separate internal descriptor.")]
+    AmbiguousDescriptors,
+
     #[error("BIP39 error: {0:?}")]
     BIP39Error(#[from] Option<bdk_wallet::bip39::Error>),
 
@@ -45,6 +48,11 @@ pub enum BDKCliError {
 
     #[error("LocalChain error: {0}")]
     LocalChainError(#[from] bdk_wallet::chain::local_chain::ApplyHeaderError),
+
+    #[error(
+        "The internal descriptor cannot be a multipath descriptor. Provide it as the external descriptor instead."
+    )]
+    MultipathInternalDescriptor,
 
     #[error("Miniscript error: {0}")]
     MiniscriptError(#[from] bdk_wallet::miniscript::Error),

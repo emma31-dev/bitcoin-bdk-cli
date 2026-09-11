@@ -5,6 +5,9 @@ page. See [DEVELOPMENT_CYCLE.md](DEVELOPMENT_CYCLE.md) for more details.
 
 ## [Unreleased]
 
+- Added support for Multipath (two-paths) descriptors.
+
+
 ## [4.0.0]
 
 - Added persistance to existing async payjoin integration
