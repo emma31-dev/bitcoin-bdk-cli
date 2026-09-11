@@ -163,7 +163,7 @@ impl AppCommand<AppContext<Init>> for SaveConfigCommand {
 #[derive(Args, Debug, Clone, PartialEq)]
 pub struct DeleteConfigCommand {
     /// The name of the wallet whose configuration should be deleted.
-    #[arg(long = "wallet")]
+    #[arg(env = "WALLET_NAME", short = 'w', long = "wallet", required = true)]
     pub(crate) wallet: String,
 }
 
