@@ -192,11 +192,13 @@ impl AppCommand<AppContext<Init>> for DeleteConfigCommand {
         }
 
         Ok(StatusResult {
-            message: format!("Wallet '{}' configuration deleted successfully.", wallet_name),
+            message: format!(
+                "Wallet '{}' configuration deleted successfully.",
+                wallet_name
+            ),
         })
     }
 }
-
 
 #[derive(Args, Debug, Clone, PartialEq)]
 pub struct ListWalletsCommand;
