@@ -15,6 +15,7 @@ use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -102,7 +103,11 @@ impl WalletConfig {
     pub fn delete(datadir: &Path) -> Result<bool, Error> {
         let config_path = datadir.join("config.toml");
         if !config_path.exists() {
-            log::debug!("Config file {config_path:?} does not exist, nothing to delete");
+            writeln!(
+                std::io::stderr(),
+                "Config file {config_path:?} does not exist, nothing to delete"
+            )
+            .map_err(|e| Error::Generic(format!("Failed to write warning: {e}")))?;
             return Ok(false);
         }
         fs::remove_file(&config_path).map_err(|e| {
