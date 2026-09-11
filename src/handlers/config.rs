@@ -183,13 +183,7 @@ impl AppCommand<AppContext<Init>> for DeleteConfigCommand {
             )));
         }
 
-        if config.wallets.is_empty() {
-            WalletConfig::delete(&ctx.datadir)?;
-        } else {
-            config
-                .save(&ctx.datadir)
-                .map_err(|error| Error::Generic(error.to_string()))?;
-        }
+        WalletConfig::delete(&ctx.datadir)?;
 
         Ok(StatusResult {
             message: format!(
