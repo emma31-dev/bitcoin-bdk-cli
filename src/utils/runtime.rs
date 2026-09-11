@@ -7,7 +7,9 @@ use std::{
 };
 
 use crate::{
-    error::BDKCliError as Error, persister::new_wallet, utils::{prepare_wallet_db_dir, load_wallet_config},
+    error::BDKCliError as Error,
+    persister::new_wallet,
+    utils::{load_wallet_config, prepare_wallet_db_dir},
 };
 #[cfg(any(feature = "sqlite", feature = "redb"))]
 use {
