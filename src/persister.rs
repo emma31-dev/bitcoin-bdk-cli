@@ -1,5 +1,6 @@
 use crate::commands::WalletOpts;
 use crate::error::BDKCliError as Error;
+use crate::utils::descriptors::validate_descriptor_pair;
 use bdk_wallet::Wallet;
 use bdk_wallet::bitcoin::Network;
 #[cfg(any(feature = "sqlite", feature = "redb"))]
@@ -68,14 +69,21 @@ where
     let ext_descriptor = wallet_opts.ext_descriptor.clone();
     let int_descriptor = wallet_opts.int_descriptor.clone();
 
-    let mut wallet_load_params = Wallet::load();
-    wallet_load_params =
-        wallet_load_params.descriptor(KeychainKind::External, Some(ext_descriptor.clone()));
+    let ext_is_multipath =
+        validate_descriptor_pair(&ext_descriptor, int_descriptor.as_deref(), network)?;
 
-    if int_descriptor.is_some() {
-        wallet_load_params =
-            wallet_load_params.descriptor(KeychainKind::Internal, int_descriptor.clone());
-    }
+    let mut wallet_load_params = Wallet::load();
+    wallet_load_params = if ext_is_multipath {
+        // Load a wallet created from a two-path (BIP-389) descriptor.
+        wallet_load_params.two_path_descriptor(ext_descriptor.clone())
+    } else {
+        let mut params =
+            wallet_load_params.descriptor(KeychainKind::External, Some(ext_descriptor.clone()));
+        if int_descriptor.is_some() {
+            params = params.descriptor(KeychainKind::Internal, int_descriptor.clone());
+        }
+        params
+    };
     wallet_load_params = wallet_load_params.extract_keys();
 
     let wallet_opt = wallet_load_params
@@ -85,16 +93,20 @@ where
 
     let wallet = match wallet_opt {
         Some(wallet) => wallet,
-        None => match int_descriptor {
-            Some(int_descriptor) => Wallet::create(ext_descriptor, int_descriptor)
+        None => {
+            let builder = if let Some(int_descriptor) = int_descriptor {
+                Wallet::create(ext_descriptor, int_descriptor)
+            } else if ext_is_multipath {
+                Wallet::create_from_two_path_descriptor(ext_descriptor)
+            } else {
+                Wallet::create_single(ext_descriptor)
+            };
+
+            builder
                 .network(network)
                 .create_wallet(persister)
-                .map_err(|e| Error::Generic(e.to_string()))?,
-            None => Wallet::create_single(ext_descriptor)
-                .network(network)
-                .create_wallet(persister)
-                .map_err(|e| Error::Generic(e.to_string()))?,
-        },
+                .map_err(|e| Error::Generic(e.to_string()))?
+        }
     };
 
     Ok(wallet)
@@ -104,18 +116,17 @@ pub(crate) fn new_wallet(network: Network, wallet_opts: &WalletOpts) -> Result<W
     let ext_descriptor = wallet_opts.ext_descriptor.clone();
     let int_descriptor = wallet_opts.int_descriptor.clone();
 
-    match int_descriptor {
-        Some(int_descriptor) => {
-            let wallet = Wallet::create(ext_descriptor, int_descriptor)
-                .network(network)
-                .create_wallet_no_persist()?;
-            Ok(wallet)
-        }
-        None => {
-            let wallet = Wallet::create_single(ext_descriptor)
-                .network(network)
-                .create_wallet_no_persist()?;
-            Ok(wallet)
-        }
-    }
+    let ext_is_multipath =
+        validate_descriptor_pair(&ext_descriptor, int_descriptor.as_deref(), network)?;
+
+    let builder = if let Some(int_descriptor) = int_descriptor {
+        Wallet::create(ext_descriptor, int_descriptor)
+    } else if ext_is_multipath {
+        Wallet::create_from_two_path_descriptor(ext_descriptor)
+    } else {
+        Wallet::create_single(ext_descriptor)
+    };
+
+    let wallet = builder.network(network).create_wallet_no_persist()?;
+    Ok(wallet)
 }

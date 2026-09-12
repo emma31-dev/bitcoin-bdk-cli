@@ -14,6 +14,7 @@ use crate::handlers::Init;
 use crate::handlers::{AppCommand, AppContext};
 #[cfg(any(feature = "sqlite", feature = "redb"))]
 use crate::persister::DatabaseType;
+use crate::utils::descriptors::validate_descriptor_pair;
 use crate::utils::types::{StatusResult, WalletsListResult};
 use bdk_wallet::bitcoin::Network;
 use clap::Args;
@@ -43,6 +44,8 @@ impl AppCommand<AppContext<Init>> for SaveConfigCommand {
 
         let ext_descriptor = self.wallet_opts.ext_descriptor.clone();
         let int_descriptor = self.wallet_opts.int_descriptor.clone();
+
+        validate_descriptor_pair(&ext_descriptor, int_descriptor.as_deref(), ctx.network)?;
 
         if ext_descriptor.contains("xprv") || ext_descriptor.contains("tprv") {
             eprintln!(

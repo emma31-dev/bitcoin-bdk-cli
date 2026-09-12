@@ -245,10 +245,12 @@ pub struct WalletOpts {
     /// Selects the wallet to use.
     #[arg(skip)]
     pub wallet: Option<String>,
+    /// A single external descriptor, or a BIP-389 multipath descriptor.
     /// Sets the descriptor to use for the external addresses.
     #[arg(env = "EXT_DESCRIPTOR", short = 'e', long, required = true)]
     pub ext_descriptor: String,
-    /// Sets the descriptor to use for internal/change addresses.
+    /// Optional internal/change descriptor. Omit when `ext_descriptor` is a
+    /// multipath descriptor. Sets the descriptor to use for internal/change addresses.
     #[arg(env = "INT_DESCRIPTOR", short = 'i', long)]
     pub int_descriptor: Option<String>,
     #[cfg(any(
