@@ -4,6 +4,12 @@ use clap::Parser;
 use crate::client::BlockchainClient::Electrum;
 #[cfg(feature = "cbf")]
 use crate::client::{BlockchainClient::KyotoClient, sync_kyoto_client};
+#[cfg(any(
+    feature = "electrum",
+    feature = "esplora",
+    feature = "cbf",
+    feature = "rpc"
+))]
 use crate::commands::OutputFormatType;
 #[cfg(feature = "esplora")]
 use {crate::client::BlockchainClient::Esplora, bdk_esplora::EsploraAsyncExt};
