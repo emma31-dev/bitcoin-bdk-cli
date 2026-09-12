@@ -99,8 +99,6 @@ pub struct CliOpts {
 pub enum OutputFormatType {
     /// JSON output.
     Json,
-    /// Table output.
-    Table,
     /// TOML output.
     Toml,
 }
