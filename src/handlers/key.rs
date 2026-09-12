@@ -12,7 +12,11 @@ use bdk_wallet::miniscript::{self, Segwitv0};
 use clap::Parser;
 
 impl KeySubCommand {
-    pub fn execute(&self, ctx: &mut AppContext<Init>, format: OutputFormatType) -> Result<(), Error> {
+    pub fn execute(
+        &self,
+        ctx: &mut AppContext<Init>,
+        format: OutputFormatType,
+    ) -> Result<(), Error> {
         match self {
             KeySubCommand::Generate(generate_key_command) => generate_key_command
                 .execute(ctx)?

@@ -1,8 +1,8 @@
 use std::io::Write;
 
 use crate::{commands::OutputFormatType, error::BDKCliError as Error};
+use cli_table::{Cell, Style, Table, format::Justify};
 use serde::Serialize;
-use cli_table::{format::Justify, Cell, Style, Table};
 
 /// A trait for types that can be presented to the user.
 pub trait FormatOutput: Serialize {
@@ -25,7 +25,6 @@ pub trait FormatOutput: Serialize {
     /// The default implementation falls back to JSON when the value cannot be
     /// represented as rows.
     fn format_table(&self) -> Result<String, Error> {
-
         // Serialize the value into a generic JSON representation so we can
         // inspect its shape regardless of the concrete type.
         let value = serde_json::to_value(self)
@@ -89,12 +88,7 @@ pub trait FormatOutput: Serialize {
         Ok(table.to_string())
     }
 
-
-    fn write_out<W: Write>(
-        &self,
-        mut writer: W,
-        format: OutputFormatType,
-    ) -> Result<(), Error> {
+    fn write_out<W: Write>(&self, mut writer: W, format: OutputFormatType) -> Result<(), Error> {
         let output = self.format(format)?;
 
         writeln!(writer, "{}", output)

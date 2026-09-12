@@ -36,34 +36,42 @@ use {
 };
 
 impl OfflineWalletSubCommand {
-    pub fn execute(&self, ctx: &mut AppContext<OfflineOperations<'_>>, format: OutputFormatType) -> Result<(), Error> {
+    pub fn execute(
+        &self,
+        ctx: &mut AppContext<OfflineOperations<'_>>,
+        format: OutputFormatType,
+    ) -> Result<(), Error> {
         match self {
-            Self::NewAddress(new_address) => new_address.execute(ctx)?.write_out(std::io::stdout(), format),
+            Self::NewAddress(new_address) => new_address
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             Self::Balance(balance) => balance.execute(ctx)?.write_out(std::io::stdout(), format),
             Self::UnusedAddress(unused_address_command) => unused_address_command
                 .execute(ctx)?
                 .write_out(std::io::stdout(), format),
-            Self::Unspent(unspent_command) => {
-                unspent_command.execute(ctx)?.write_out(std::io::stdout(), format)
-            }
+            Self::Unspent(unspent_command) => unspent_command
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             Self::Transactions(transactions_command) => transactions_command
                 .execute(ctx)?
                 .write_out(std::io::stdout(), format),
-            Self::CreateTx(createtx_command) => {
-                createtx_command.execute(ctx)?.write_out(std::io::stdout(), format)
-            }
+            Self::CreateTx(createtx_command) => createtx_command
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             #[cfg(feature = "silent-payments")]
             Self::CreateSpTx(cmd) => cmd.execute(ctx)?.write_out(std::io::stdout(), format),
-            Self::BumpFee(bumpfee_command) => {
-                bumpfee_command.execute(ctx)?.write_out(std::io::stdout(), format)
-            }
-            Self::Policies(policies_command) => {
-                policies_command.execute(ctx)?.write_out(std::io::stdout(), format)
-            }
+            Self::BumpFee(bumpfee_command) => bumpfee_command
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
+            Self::Policies(policies_command) => policies_command
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             Self::PublicDescriptor(public_descriptor_command) => public_descriptor_command
                 .execute(ctx)?
                 .write_out(std::io::stdout(), format),
-            Self::Sign(sign_command) => sign_command.execute(ctx)?.write_out(std::io::stdout(), format),
+            Self::Sign(sign_command) => sign_command
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             Self::ExtractPsbt(extract_psbt_command) => extract_psbt_command
                 .execute(ctx)?
                 .write_out(std::io::stdout(), format),
@@ -81,11 +89,15 @@ impl OfflineWalletSubCommand {
             Self::VerifyMessage(verify_message_command) => verify_message_command
                 .execute(ctx)?
                 .write_out(std::io::stdout(), format),
-            Self::LockUtxo(lock_utxo) => lock_utxo.execute(ctx)?.write_out(std::io::stdout(), format),
-            Self::UnlockUtxo(unlock_utxo) => unlock_utxo.execute(ctx)?.write_out(std::io::stdout(), format),
-            Self::LockedUtxos(locked_utxos) => {
-                locked_utxos.execute(ctx)?.write_out(std::io::stdout(), format)
+            Self::LockUtxo(lock_utxo) => {
+                lock_utxo.execute(ctx)?.write_out(std::io::stdout(), format)
             }
+            Self::UnlockUtxo(unlock_utxo) => unlock_utxo
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
+            Self::LockedUtxos(locked_utxos) => locked_utxos
+                .execute(ctx)?
+                .write_out(std::io::stdout(), format),
             #[cfg(feature = "dns_payment")]
             Self::CreateDnsTx(_) => Err(Error::Generic(
                 "CreateDnsTx is dispatched asynchronously through main".to_string(),

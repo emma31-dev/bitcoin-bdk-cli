@@ -51,7 +51,11 @@ use {
     feature = "rpc"
 ))]
 impl OnlineWalletSubCommand {
-    pub async fn execute(&self, ctx: &mut AppContext<OnlineOperations<'_>>, format: OutputFormatType) -> Result<(), Error> {
+    pub async fn execute(
+        &self,
+        ctx: &mut AppContext<OnlineOperations<'_>>,
+        format: OutputFormatType,
+    ) -> Result<(), Error> {
         match self {
             OnlineWalletSubCommand::FullScan(full_scan_command) => {
                 let response: StatusResult = full_scan_command.execute(ctx).await?;

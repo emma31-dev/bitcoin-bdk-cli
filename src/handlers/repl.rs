@@ -77,7 +77,9 @@ pub(crate) async fn respond(
                     wallet_name.to_string(),
                 );
 
-                cmd.execute(&mut ctx, format).await.map_err(|e| e.to_string())?;
+                cmd.execute(&mut ctx, format)
+                    .await
+                    .map_err(|e| e.to_string())?;
                 Some(())
             }
             WalletSubCommand::Config(_) => {
@@ -102,7 +104,9 @@ pub(crate) async fn respond(
 
         ReplSubCommand::Key { subcommand } => {
             let mut ctx = AppContext::new(network, datadir);
-            subcommand.execute(&mut ctx, format).map_err(|e| e.to_string())?;
+            subcommand
+                .execute(&mut ctx, format)
+                .map_err(|e| e.to_string())?;
             Some(())
         }
 

@@ -113,7 +113,9 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
 
                 let mut ctx = AppContext::new(cli_opts.network, home_dir);
 
-                config_cmd.execute(&mut ctx)?.write_out(std::io::stdout(), cli_opts.format)?;
+                config_cmd
+                    .execute(&mut ctx)?
+                    .write_out(std::io::stdout(), cli_opts.format)?;
             }
         },
 
@@ -126,13 +128,15 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
         CliSubCommand::Descriptor(cmd) => {
             let mut ctx = AppContext::new(cli_opts.network, home_dir);
 
-            cmd.execute(&mut ctx)?.write_out(std::io::stdout(), cli_opts.format)?;
+            cmd.execute(&mut ctx)?
+                .write_out(std::io::stdout(), cli_opts.format)?;
         }
 
         CliSubCommand::Wallets(cmd) => {
             let mut ctx = AppContext::new(cli_opts.network, home_dir);
 
-            cmd.execute(&mut ctx)?.write_out(std::io::stdout(), cli_opts.format)?;
+            cmd.execute(&mut ctx)?
+                .write_out(std::io::stdout(), cli_opts.format)?;
         }
 
         #[cfg(feature = "repl")]
@@ -183,7 +187,7 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
                         feature = "cbf"
                     ))]
                     &wallet_name,
-                    cli_opts.format.clone()
+                    cli_opts.format.clone(),
                 )
                 .await
                 .map_err(Error::Generic)?;
@@ -198,7 +202,8 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
         CliSubCommand::Compile(cmd) => {
             let mut ctx = AppContext::new(cli_opts.network, home_dir);
 
-            cmd.execute(&mut ctx)?.write_out(std::io::stdout(), cli_opts.format)?;
+            cmd.execute(&mut ctx)?
+                .write_out(std::io::stdout(), cli_opts.format)?;
         }
         CliSubCommand::Completions { shell } => {
             clap_complete::generate(
@@ -212,12 +217,15 @@ async fn run(cli_opts: CliOpts) -> Result<(), Error> {
         CliSubCommand::SilentPaymentCode(cmd) => {
             let mut ctx = AppContext::new(cli_opts.network, home_dir);
 
-            cmd.execute(&mut ctx)?.write_out(std::io::stdout(), cli_opts.format)?;
+            cmd.execute(&mut ctx)?
+                .write_out(std::io::stdout(), cli_opts.format)?;
         }
         #[cfg(feature = "dns_payment")]
         CliSubCommand::ResolveDnsRecipient(cmd) => {
             let mut ctx = AppContext::new(cli_opts.network, home_dir);
-            cmd.execute(&mut ctx).await?.write_out(std::io::stdout(), cli_opts.format)?;
+            cmd.execute(&mut ctx)
+                .await?
+                .write_out(std::io::stdout(), cli_opts.format)?;
         }
     }
 
