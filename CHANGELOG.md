@@ -6,7 +6,7 @@ page. See [DEVELOPMENT_CYCLE.md](DEVELOPMENT_CYCLE.md) for more details.
 ## [Unreleased]
 
 - Added support for Multipath (two-paths) descriptors.
-
+- Support for JSON and TOML format through `--format` flag.
 
 ## [4.0.0]
 
