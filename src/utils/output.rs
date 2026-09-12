@@ -5,16 +5,9 @@ use serde::Serialize;
 
 /// A trait for types that can be presented to the user.
 pub trait FormatOutput: Serialize {
-    fn format(&self) -> Result<String, Error> {
-        serde_json::to_string_pretty(self)
-            .map_err(|e| Error::Generic(format!("JSON serialization failed: {e}")))
-    }
-
     fn write_out<W: Write>(&self, mut writer: W) -> Result<(), Error> {
-        let output = self.format()?;
-
-        writeln!(writer, "{}", output)
-            .map_err(|e| Error::Generic(format!("Failed to write output: {e}")))
+        serde_json::to_writer_pretty(&mut writer, self)
+            .map_err(|e| Error::Generic(format!("JSON serialization failed: {e}")))
     }
 }
 
