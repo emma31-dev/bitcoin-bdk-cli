@@ -1,4 +1,4 @@
-use crate::commands::OfflineWalletSubCommand;
+use crate::commands::{OfflineWalletSubCommand, OutputFormatType};
 use crate::error::BDKCliError as Error;
 use crate::handlers::{AppCommand, AppContext, OfflineOperations};
 use crate::utils::output::{FormatOutput, ListResult};
@@ -36,55 +36,55 @@ use {
 };
 
 impl OfflineWalletSubCommand {
-    pub fn execute(&self, ctx: &mut AppContext<OfflineOperations<'_>>) -> Result<(), Error> {
+    pub fn execute(&self, ctx: &mut AppContext<OfflineOperations<'_>>, format: OutputFormatType) -> Result<(), Error> {
         match self {
-            Self::NewAddress(new_address) => new_address.execute(ctx)?.write_out(std::io::stdout()),
-            Self::Balance(balance) => balance.execute(ctx)?.write_out(std::io::stdout()),
+            Self::NewAddress(new_address) => new_address.execute(ctx)?.write_out(std::io::stdout(), format),
+            Self::Balance(balance) => balance.execute(ctx)?.write_out(std::io::stdout(), format),
             Self::UnusedAddress(unused_address_command) => unused_address_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             Self::Unspent(unspent_command) => {
-                unspent_command.execute(ctx)?.write_out(std::io::stdout())
+                unspent_command.execute(ctx)?.write_out(std::io::stdout(), format)
             }
             Self::Transactions(transactions_command) => transactions_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             Self::CreateTx(createtx_command) => {
-                createtx_command.execute(ctx)?.write_out(std::io::stdout())
+                createtx_command.execute(ctx)?.write_out(std::io::stdout(), format)
             }
             #[cfg(feature = "silent-payments")]
-            Self::CreateSpTx(cmd) => cmd.execute(ctx)?.write_out(std::io::stdout()),
+            Self::CreateSpTx(cmd) => cmd.execute(ctx)?.write_out(std::io::stdout(), format),
             Self::BumpFee(bumpfee_command) => {
-                bumpfee_command.execute(ctx)?.write_out(std::io::stdout())
+                bumpfee_command.execute(ctx)?.write_out(std::io::stdout(), format)
             }
             Self::Policies(policies_command) => {
-                policies_command.execute(ctx)?.write_out(std::io::stdout())
+                policies_command.execute(ctx)?.write_out(std::io::stdout(), format)
             }
             Self::PublicDescriptor(public_descriptor_command) => public_descriptor_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
-            Self::Sign(sign_command) => sign_command.execute(ctx)?.write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
+            Self::Sign(sign_command) => sign_command.execute(ctx)?.write_out(std::io::stdout(), format),
             Self::ExtractPsbt(extract_psbt_command) => extract_psbt_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             Self::FinalizePsbt(finalize_psbt_command) => finalize_psbt_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             Self::CombinePsbt(combine_psbt_command) => combine_psbt_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             #[cfg(feature = "message_signer")]
             Self::SignMessage(sign_message_command) => sign_message_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             #[cfg(feature = "message_signer")]
             Self::VerifyMessage(verify_message_command) => verify_message_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
-            Self::LockUtxo(lock_utxo) => lock_utxo.execute(ctx)?.write_out(std::io::stdout()),
-            Self::UnlockUtxo(unlock_utxo) => unlock_utxo.execute(ctx)?.write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
+            Self::LockUtxo(lock_utxo) => lock_utxo.execute(ctx)?.write_out(std::io::stdout(), format),
+            Self::UnlockUtxo(unlock_utxo) => unlock_utxo.execute(ctx)?.write_out(std::io::stdout(), format),
             Self::LockedUtxos(locked_utxos) => {
-                locked_utxos.execute(ctx)?.write_out(std::io::stdout())
+                locked_utxos.execute(ctx)?.write_out(std::io::stdout(), format)
             }
             #[cfg(feature = "dns_payment")]
             Self::CreateDnsTx(_) => Err(Error::Generic(

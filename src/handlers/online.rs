@@ -4,6 +4,13 @@ use clap::Parser;
 use crate::client::BlockchainClient::Electrum;
 #[cfg(feature = "cbf")]
 use crate::client::{BlockchainClient::KyotoClient, sync_kyoto_client};
+#[cfg(any(
+    feature = "electrum",
+    feature = "esplora",
+    feature = "cbf",
+    feature = "rpc"
+))]
+use crate::commands::OutputFormatType;
 #[cfg(feature = "esplora")]
 use {crate::client::BlockchainClient::Esplora, bdk_esplora::EsploraAsyncExt};
 #[cfg(feature = "rpc")]
@@ -44,35 +51,35 @@ use {
     feature = "rpc"
 ))]
 impl OnlineWalletSubCommand {
-    pub async fn execute(&self, ctx: &mut AppContext<OnlineOperations<'_>>) -> Result<(), Error> {
+    pub async fn execute(&self, ctx: &mut AppContext<OnlineOperations<'_>>, format: OutputFormatType) -> Result<(), Error> {
         match self {
             OnlineWalletSubCommand::FullScan(full_scan_command) => {
                 let response: StatusResult = full_scan_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::Sync(sync_command) => {
                 let response: StatusResult = sync_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::Broadcast(broadcast_command) => {
                 let response: TransactionResult = broadcast_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::ReceivePayjoin(receive_payjoin_command) => {
                 let response: StatusResult = receive_payjoin_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::SendPayjoin(send_payjoin_command) => {
                 let response: StatusResult = send_payjoin_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::ResumePayjoin(resume_payjoin_command) => {
                 let response: StatusResult = resume_payjoin_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
             OnlineWalletSubCommand::PayjoinHistory(payjoin_history_command) => {
                 let response: StatusResult = payjoin_history_command.execute(ctx).await?;
-                response.write_out(std::io::stdout())
+                response.write_out(std::io::stdout(), format)
             }
         }
     }

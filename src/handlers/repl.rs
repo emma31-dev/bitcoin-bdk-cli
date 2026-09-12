@@ -18,6 +18,8 @@ use {
 ))]
 use crate::client::BlockchainClient;
 #[cfg(feature = "repl")]
+use crate::commands::OutputFormatType;
+#[cfg(feature = "repl")]
 use {crate::commands::WalletSubCommand, crate::error::BDKCliError as Error, std::io::Write};
 
 #[cfg(feature = "repl")]
@@ -40,6 +42,7 @@ pub(crate) async fn respond(
         feature = "cbf"
     ))]
     wallet_name: &str,
+    format: OutputFormatType,
 ) -> Result<bool, String> {
     let args = shlex::split(line).ok_or("error: Invalid quoting".to_string())?;
 
@@ -55,7 +58,7 @@ pub(crate) async fn respond(
         ReplSubCommand::Wallet { subcommand } => match subcommand {
             WalletSubCommand::OfflineWalletSubCommand(cmd) => {
                 let mut ctx = AppContext::new_offline_wallet(network, datadir, wallet);
-                cmd.execute(&mut ctx).map_err(|e| e.to_string())?;
+                cmd.execute(&mut ctx, format).map_err(|e| e.to_string())?;
                 Some(())
             }
             #[cfg(any(
@@ -74,7 +77,7 @@ pub(crate) async fn respond(
                     wallet_name.to_string(),
                 );
 
-                cmd.execute(&mut ctx).await.map_err(|e| e.to_string())?;
+                cmd.execute(&mut ctx, format).await.map_err(|e| e.to_string())?;
                 Some(())
             }
             WalletSubCommand::Config(_) => {
@@ -92,14 +95,14 @@ pub(crate) async fn respond(
             let mut ctx = AppContext::new(network, datadir);
             cmd.execute(&mut ctx)
                 .map_err(|e| e.to_string())?
-                .write_out(std::io::stdout())
+                .write_out(std::io::stdout(), format)
                 .map_err(|e| e.to_string())?;
             Some(())
         }
 
         ReplSubCommand::Key { subcommand } => {
             let mut ctx = AppContext::new(network, datadir);
-            subcommand.execute(&mut ctx).map_err(|e| e.to_string())?;
+            subcommand.execute(&mut ctx, format).map_err(|e| e.to_string())?;
             Some(())
         }
 

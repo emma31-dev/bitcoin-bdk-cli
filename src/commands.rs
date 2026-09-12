@@ -86,9 +86,23 @@ pub struct CliOpts {
     /// Default value : ~/.bdk-bitcoin
     #[arg(env = "DATADIR", short = 'd', long = "datadir")]
     pub datadir: Option<std::path::PathBuf>,
+    /// Sets the output format.
+    #[arg(env = "FORMAT", short = 'f', long = "format", default_value = "json")]
+    pub format: OutputFormatType,
     /// Top level cli sub-commands.
     #[command(subcommand)]
     pub subcommand: CliSubCommand,
+}
+
+/// Supported output formats.
+#[derive(Clone, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum OutputFormatType {
+    /// JSON output.
+    Json,
+    /// Table output.
+    Table,
+    /// TOML output.
+    Toml,
 }
 
 /// Top level cli sub-commands.

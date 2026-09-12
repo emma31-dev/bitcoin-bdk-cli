@@ -1,4 +1,4 @@
-use crate::commands::KeySubCommand;
+use crate::commands::{KeySubCommand, OutputFormatType};
 use crate::error::BDKCliError as Error;
 use crate::handlers::{AppCommand, AppContext, Init};
 use crate::utils::{output::FormatOutput, types::KeyResult};
@@ -12,17 +12,17 @@ use bdk_wallet::miniscript::{self, Segwitv0};
 use clap::Parser;
 
 impl KeySubCommand {
-    pub fn execute(&self, ctx: &mut AppContext<Init>) -> Result<(), Error> {
+    pub fn execute(&self, ctx: &mut AppContext<Init>, format: OutputFormatType) -> Result<(), Error> {
         match self {
             KeySubCommand::Generate(generate_key_command) => generate_key_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             KeySubCommand::Restore(restore_key_command) => restore_key_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
             KeySubCommand::Derive(derive_key_command) => derive_key_command
                 .execute(ctx)?
-                .write_out(std::io::stdout()),
+                .write_out(std::io::stdout(), format),
         }
     }
 }
