@@ -147,6 +147,43 @@ mod test_offline {
         .stderr(predicate::str::contains("Invalid"));
     }
 
+    #[test]
+    fn test_sign_rejects_unsupported_tap_leaves_option() {
+        let (cli, mut cmd_init) = setup_wallet_config();
+        cmd_init.assert().success();
+
+        cli.wallet_cmd(&[
+            "--wallet",
+            WALLET_NAME,
+            "sign",
+            "invalid_psbt",
+            "--tap_leaves_options",
+            "include",
+        ])
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("invalid value"));
+    }
+
+    #[test]
+    fn test_sign_accepts_tap_leaves_options() {
+        let (cli, mut cmd_init) = setup_wallet_config();
+        cmd_init.assert().success();
+
+        for value in ["all", "none"] {
+            cli.wallet_cmd(&[
+                "--wallet",
+                WALLET_NAME,
+                "sign",
+                "invalid_psbt",
+                "--tap_leaves_options",
+                value,
+            ])
+            .assert()
+            .code(1)
+            .stderr(predicate::str::contains("invalid value").not());
+        }
+    }
     /// A malformed `create_tx` argument must be reported as an error (exit 1),
     /// never as a panic (exit 101).
     #[test]
